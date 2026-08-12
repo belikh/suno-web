@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suno Archive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── sidebar ─────────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="brand">
+      <span class="brand-mark">◉</span>
+      <div>
+        <div class="brand-name">Suno Archive</div>
+        <div class="brand-sub" id="brandSub">loading…</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="library"><span>≡</span> Library</button>
+      <button class="nav-item" data-view="personas"><span>☺</span> Personas</button>
+      <button class="nav-item" data-view="liked"><span>♥</span> Liked</button>
+    </nav>
+
+    <div class="side-head">
+      <span>Playlists</span>
+      <button id="newPlaylist" title="New playlist">+</button>
+    </div>
+    <div id="playlists" class="playlists"></div>
+
+    <div id="indexStatus" class="index-status"></div>
+  </aside>
+
+  <!-- ── main ────────────────────────────────────────────────── -->
+  <main id="main">
+    <header id="topbar">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Search titles, lyrics, styles, personas, prompts…" autocomplete="off">
+        <button id="clearSearch" title="Clear">×</button>
+      </div>
+      <div class="topbar-controls">
+        <label class="ctl">Sort
+          <select id="sort">
+            <option value="created">Newest</option>
+            <option value="title">Title</option>
+            <option value="duration">Longest</option>
+            <option value="family">Most derived</option>
+            <option value="plays">Most played</option>
+            <option value="upvotes">Most upvoted</option>
+            <option value="size">Largest file</option>
+          </select>
+        </label>
+        <button id="orderBtn" class="ctl-btn" title="Toggle direction">↓</button>
+        <label class="ctl toggle"><input type="checkbox" id="groupToggle" checked> Group variants</label>
+        <button id="filterBtn" class="ctl-btn">Filters</button>
+      </div>
+    </header>
+
+    <div id="activeFilters" class="active-filters"></div>
+
+    <section id="content"></section>
+  </main>
+
+  <!-- ── filter rail ─────────────────────────────────────────── -->
+  <aside id="filters" class="hidden">
+    <div class="filters-head">
+      <strong>Filters</strong>
+      <div>
+        <button id="resetFilters" class="link">Reset</button>
+        <button id="closeFilters" class="ctl-btn">×</button>
+      </div>
+    </div>
+    <div id="filterBody"></div>
+  </aside>
+
+</div>
+
+<!-- ── lineage drawer ────────────────────────────────────────── -->
+<div id="lineage" class="drawer hidden">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title">Relationships</div>
+      <div class="drawer-sub" id="lineageSub"></div>
+    </div>
+    <button id="closeLineage" class="ctl-btn">×</button>
+  </div>
+  <div id="lineageBody" class="drawer-body"></div>
+</div>
+
+<!-- ── track detail drawer ───────────────────────────────────── -->
+<div id="detail" class="drawer hidden">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title">Track detail</div>
+      <div class="drawer-sub" id="detailSub"></div>
+    </div>
+    <button id="closeDetail" class="ctl-btn">×</button>
+  </div>
+  <div id="detailBody" class="drawer-body"></div>
+</div>
+
+<div id="scrim" class="hidden"></div>
+
+<!-- ── full-screen now playing ───────────────────────────────── -->
+<div id="now" class="hidden">
+  <div id="nowBg"></div>
+  <div id="nowVeil"></div>
+
+  <div class="now-top">
+    <div class="now-top-left">
+      <div class="now-eyebrow">Now playing</div>
+      <div id="nowFsTitle" class="now-fs-title">—</div>
+      <div id="nowFsSub" class="now-fs-sub"></div>
+    </div>
+    <div class="now-top-right">
+      <button id="nowLyricsToggle" class="ctl-btn on" title="Toggle lyrics">Lyrics</button>
+      <button id="nowAutoScroll" class="ctl-btn on" title="Auto-scroll lyrics with playback">Auto-scroll</button>
+      <button id="closeNow" class="ctl-btn" title="Close (Esc)">×</button>
+    </div>
+  </div>
+
+  <div class="now-body">
+    <div class="now-art-wrap">
+      <img id="nowFsArt" class="now-fs-art" alt="">
+      <div id="nowFsMeta" class="now-fs-meta"></div>
+    </div>
+    <div class="now-lyrics-wrap">
+      <div id="nowLyrics" class="now-lyrics"></div>
+    </div>
+  </div>
+
+  <div class="now-bottom">
+    <button id="nowPrev" title="Previous">⏮</button>
+    <button id="nowPlay" class="play" title="Play/pause">▶</button>
+    <button id="nowNext" title="Next">⏭</button>
+    <span id="nowCur" class="now-t">0:00</span>
+    <input id="nowSeek" type="range" min="0" max="1000" value="0">
+    <span id="nowDur" class="now-t">0:00</span>
+    <button id="nowLineage" class="ctl-btn" title="Relationships">⑃</button>
+    <button id="nowAdd" class="ctl-btn" title="Add to playlist">+</button>
+  </div>
+</div>
+
+<!-- ── player ────────────────────────────────────────────────── -->
+<footer id="player">
+  <div class="now">
+    <img id="nowCover" alt="" class="now-cover">
+    <div class="now-meta">
+      <div id="nowTitle" class="now-title">—</div>
+      <div id="nowSub" class="now-sub"></div>
+    </div>
+  </div>
+  <div class="transport">
+    <div class="buttons">
+      <button id="prevBtn" title="Previous">⏮</button>
+      <button id="playBtn" class="play" title="Play/pause">▶</button>
+      <button id="nextBtn" title="Next">⏭</button>
+    </div>
+    <div class="seek-row">
+      <span id="curTime">0:00</span>
+      <input id="seek" type="range" min="0" max="1000" value="0">
+      <span id="durTime">0:00</span>
+    </div>
+  </div>
+  <div class="player-right">
+    <button id="expandBtn" class="ctl-btn" title="Full screen (lyrics + art)">⤢</button>
+    <button id="lineageBtn" class="ctl-btn" title="Show relationships">⑃</button>
+    <button id="addBtn" class="ctl-btn" title="Add to playlist">+</button>
+    <input id="volume" type="range" min="0" max="100" value="100" title="Volume">
+  </div>
+  <audio id="audio" preload="metadata"></audio>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
