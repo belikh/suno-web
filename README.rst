@@ -2,8 +2,8 @@
 
    <p align="right">
      <picture>
-       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/belikh/design/releases/latest/download/logo-dark.svg">
-       <img alt="jupiter.au" src="https://github.com/belikh/design/releases/latest/download/logo-light.svg" width="260">
+       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/belikh/design/latest/packages/graphics/logo/jupiter-logo-dark.svg">
+       <img alt="jupiter.au" src="https://raw.githubusercontent.com/belikh/design/latest/packages/graphics/logo/jupiter-logo-light.svg" width="260">
      </picture>
    </p>
 
@@ -12,22 +12,22 @@
 .. meta::
    :description: A library browser for a local Suno archive: search, filters, derivation graph, playlists and lossless playback in one Go binary.
 
-.. |api-l| image:: https://github.com/belikh/design/releases/latest/download/icon-code-light.svg#gh-light-mode-only
+.. |api-l| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/code-light.svg#gh-light-mode-only
    :width: 20
    :alt:
-.. |api-d| image:: https://github.com/belikh/design/releases/latest/download/icon-code-dark.svg#gh-dark-mode-only
+.. |api-d| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/code-dark.svg#gh-dark-mode-only
    :width: 20
    :alt:
-.. |cfg-l| image:: https://github.com/belikh/design/releases/latest/download/icon-sliders-light.svg#gh-light-mode-only
+.. |cfg-l| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/sliders-light.svg#gh-light-mode-only
    :width: 20
    :alt:
-.. |cfg-d| image:: https://github.com/belikh/design/releases/latest/download/icon-sliders-dark.svg#gh-dark-mode-only
+.. |cfg-d| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/sliders-dark.svg#gh-dark-mode-only
    :width: 20
    :alt:
-.. |rel-l| image:: https://github.com/belikh/design/releases/latest/download/icon-git-branch-light.svg#gh-light-mode-only
+.. |rel-l| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/git-branch-light.svg#gh-light-mode-only
    :width: 20
    :alt:
-.. |rel-d| image:: https://github.com/belikh/design/releases/latest/download/icon-git-branch-dark.svg#gh-dark-mode-only
+.. |rel-d| image:: https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/icon/git-branch-dark.svg#gh-dark-mode-only
    :width: 20
    :alt:
 
@@ -41,7 +41,7 @@ It is one Go binary using only the standard library, with the UI embedded. It ne
 
 .. raw:: html
 
-   <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/belikh/design/releases/latest/download/rule-end-dark.svg"><img alt="" src="https://github.com/belikh/design/releases/latest/download/rule-end-light.svg" width="50%"></picture></p>
+   <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/rule/end-dark.svg"><img alt="" src="https://raw.githubusercontent.com/belikh/design/latest/packages/github/graphics/rule/end-light.svg" width="50%"></picture></p>
 
 |
 
