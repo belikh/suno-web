@@ -1,18 +1,63 @@
+<p align="right">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/belikh/design/main/packages/graphics/logo/jupiter-logo-dark.svg">
+    <img alt="jupiter.au" src="https://raw.githubusercontent.com/belikh/design/main/packages/graphics/logo/jupiter-logo-light.svg" width="260">
+  </picture>
+</p>
+
 # suno-web
 
-A library browser for a **local Suno archive** — the kind you get from mirroring
-your own account's tracks to disk. Search and filter across every archived
-metadata field, follow the derivation graph between clips (covers, extends,
-stems, mashups, personas), build playlists, and play the lossless masters.
+A library browser for a local Suno archive, the kind you get by mirroring your own account's tracks to disk. It searches and filters on every archived metadata field, shows the derivation graph between clips (covers, extends, stems, mashups, personas), builds playlists and plays the lossless masters.
 
-Single stdlib-only Go binary with the UI embedded. No database, no build step,
-no external services.
+It is one Go binary using only the standard library, with the UI embedded. It needs no database, build step or external service.
+
+<p>
+  <a href="#install">Install</a> ·
+  <a href="#archive-layout">Archive layout</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#api">API</a> ·
+  <a href="#license">License</a>
+</p>
+
+<br>
 
 ---
 
-## What it expects on disk
+<br>
 
-suno-web is read-only over an archive laid out like this:
+## Install
+
+With Go:
+
+```sh
+go build -o suno-web .
+SUNOWEB_DATA_DIR=/path/to/archive ./suno-web
+```
+
+Open <http://localhost:8093>.
+
+With Nix:
+
+```sh
+nix build github:belikh/suno-web
+```
+
+To use it from another flake:
+
+```nix
+{
+  inputs.suno-web.url = "github:belikh/suno-web";
+}
+```
+
+The flake exposes `packages.<system>.suno-web` and an additive `overlays.default`.
+
+<br>
+
+## Archive layout
+
+suno-web only reads the archive. It expects this layout:
 
 ```
 <dataDir>/
@@ -26,132 +71,94 @@ suno-web is read-only over an archive laid out like this:
           meta.json             # the complete clip object from Suno
 ```
 
-`meta.json` is the full per-clip object as Suno's API returns it. Everything
-the UI filters on comes from there — nothing is re-fetched from the network.
+`meta.json` is the full per-clip object as Suno's API returns it. Everything the UI filters on comes from there, and nothing is fetched from the network.
 
-The archive is never written to. Playlists (the only data suno-web owns) live
-in a separate state directory.
+Playlists are the only data suno-web owns. They live in a separate state directory.
+
+<br>
 
 ## Features
 
-**Search** — one box over titles, lyrics, style tags, description prompts,
-persona names and task types.
+- **Search.** One box over titles, lyrics, style tags, description prompts, persona names and task types.
+- **Faceted filters with live counts.** Persona, relationship type, model, style tags, project, model version and clip type, plus yes/no toggles (liked, has lyrics, has persona, instrumental, remix, public) and date and duration ranges. Facet counts follow the current filter set.
+- **Personas.** Browse Suno's voice and artist identities as cards with track counts, or filter by one. The persona name is in the `persona` object, not in a top-level `persona_name` field.
+- **Relationships.** Clips form a graph, described below.
+- **Playlists.** Created in the UI and stored as one JSON file, written to a temporary file and renamed.
+- **Playback.** `Range`-seekable streaming of the masters, with a full-screen now-playing view: cover art enlarged behind, lyrics in front, `[Section]` markers styled.
 
-**Faceted filters with live counts** — persona/voice, relationship type, model,
-style tags, project, model version, clip type, plus yes/no toggles (liked, has
-lyrics, has persona, instrumental, remix, public) and date/duration ranges.
-Facet counts reflect the current filter set.
+### Relationships
 
-**Personas** — Suno's voice/artist identities are first-class. Browse them as
-cards with track counts, or filter by one. (Note the persona name lives in the
-`persona` *object*, not a top-level `persona_name` field — an easy thing to get
-wrong.)
-
-**Relationships** — this is the interesting part. Suno clips form a real DAG,
-and the metadata carries several distinct typed edges:
+The clip metadata carries several typed edges:
 
 | Field | Meaning |
 |---|---|
 | `metadata.cover_clip_id` | this clip is a cover of another |
 | `metadata.edited_clip_id` | derived by editing another clip |
-| `metadata.artist_clip_id` | artist/voice reference clip |
+| `metadata.artist_clip_id` | artist or voice reference clip |
 | `metadata.stem_from_id` | stem extracted from another clip |
-| `metadata.styles_lyrics_clip_id` | styles/lyrics taken from another clip |
+| `metadata.styles_lyrics_clip_id` | styles and lyrics taken from another clip |
 | `metadata.mashup_clip_ids[]` | mashup sources (many) |
-| `metadata.history[]` | ordered extend/continue chain, with `continue_at` |
+| `metadata.history[]` | ordered extend and continue chain, with `continue_at` |
 | `metadata.concat_history[]` | concatenation lineage |
 | `persona.root_clip_id` | the clip a persona was built from |
 
-`metadata.task` (≈25 values: `cover`, `vox_cover`, `artist_cover`, `extend`,
-`gen_stem`, `mashup_condition`, …) labels *how* the derivation happened.
+`metadata.task` has about 25 values (`cover`, `vox_cover`, `artist_cover`, `extend`, `gen_stem`, `mashup_condition` and others) and labels how a derivation happened.
 
-suno-web builds a reverse index over all of these and renders the family: an
-ancestry breadcrumb from the root, then the full descendant tree, colour-coded
-per edge kind and collapsible. Families get large — a single source clip can
-have hundreds of descendants — so the whole family is playable as a queue, as
-is any single branch.
+suno-web builds a reverse index over all of these edges. For a clip it shows an ancestry breadcrumb from the root, then the full descendant tree, coloured by edge kind and collapsible. A single source clip can have hundreds of descendants, so you can play a whole family, or any one branch, as a queue.
 
-**Playlists** — created in the UI, stored as one JSON file, written
-temp-then-rename.
+> [!NOTE]
+> Suno archives no word timings, alignment data or LRC, so lyrics cannot be synced exactly. They scroll in proportion to playback position, which drifts on tracks with long intros or instrumental outros. Auto-scroll is a toggle, and scrolling by hand pauses it. Exact sync would need forced alignment against the audio.
 
-**Playback** — `Range`-seekable streaming of the masters, with a full-screen
-now-playing view: cover art blown up behind, lyrics in front, `[Section]`
-markers styled.
+<br>
 
-> **On lyric scrolling:** Suno archives no word timings, alignment data or LRC
-> of any kind, so true karaoke sync is impossible from the metadata alone. The
-> lyrics scroll *proportionally to playback position* — a decent approximation
-> that drifts on tracks with long intros or instrumental outros. Auto-scroll is
-> a toggle, and scrolling by hand suspends it. Real sync would need forced
-> alignment against the audio.
-
-## Running it
-
-```sh
-go build -o suno-web .
-SUNOWEB_DATA_DIR=/path/to/archive ./suno-web
-```
-
-Then open <http://localhost:8093>.
+## Configuration
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `SUNOWEB_DATA_DIR` | `/tank/archive/suno` | archive root (read-only) |
-| `SUNOWEB_STATE_DIR` | `/var/lib/jupiter-suno-web` | playlists + index cache |
+| `SUNOWEB_STATE_DIR` | `/var/lib/jupiter-suno-web` | playlists and index cache |
 | `SUNOWEB_PORT` | `8093` | listen port |
-| `SUNOWEB_REFRESH` | `5m` | how often to re-scan for new clips |
+| `SUNOWEB_REFRESH` | `5m` | how often to rescan for new clips |
 
-### Indexing
+<details><summary><b>Indexing</b></summary>
 
-On first run every `meta.json` is parsed into a compact in-memory record; the
-result is persisted (gzipped) to the state directory, so restarts load
-instantly and only newly-appeared clips are parsed. Rescans are incremental and
-run on `SUNOWEB_REFRESH`, so an archive that is still downloading fills in
-without a restart.
+On first run every `meta.json` is parsed into a compact in-memory record. The result is saved gzipped in the state directory, so restarts load at once and only new clips are parsed. Rescans are incremental and run every `SUNOWEB_REFRESH`, so an archive that is still downloading fills in without a restart.
 
-Memory is deliberately bounded: one lowercased search blob per clip plus small
-scalars, never the raw `meta.json` (that is re-read on demand for the detail
-view). A ~19k-clip archive indexes in seconds and sits around 250MB resident.
+Memory use is bounded: one lowercased search string per clip plus small scalar fields. The raw `meta.json` is read again only for the detail view. An archive of about 19,000 clips indexes in seconds and uses around 250 MB resident.
 
-Because an archive can be mid-download, lineage edges pointing at clips you
-don't have yet are shown as *"not archived yet"* rather than *"not in archive"*
-— it reads `backfill_done` from `index.json` to tell those apart, if present.
+Lineage edges that point at clips you do not have yet show as "not archived yet" instead of "not in archive". suno-web reads `backfill_done` from `index.json`, when present, to tell the two apart.
 
-## Nix
+</details>
 
-```nix
-{
-  inputs.suno-web.url = "github:belikh/suno-web";
-}
-```
-
-Exposes `packages.<system>.suno-web` and an additive `overlays.default`.
-Build directly with:
-
-```sh
-nix build github:belikh/suno-web
-```
+<br>
 
 ## API
 
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/status` | index progress, counts, backfill state |
-| `GET /api/tracks?…` | search/filter/facet/group/sort/paginate |
-| `GET /api/track/{id}` | indexed record + full raw `meta.json` + neighbours |
-| `GET /api/lineage/{id}` | ancestry chain + full descendant tree |
+| `GET /api/tracks?…` | search, filter, facet, group, sort, paginate |
+| `GET /api/track/{id}` | indexed record, full raw `meta.json` and neighbours |
+| `GET /api/lineage/{id}` | ancestry chain and full descendant tree |
 | `GET /api/lyrics/{id}` | lyric text only |
 | `GET /api/personas` | every persona with counts |
 | `GET /api/audio/{id}` | the master, `Range`-seekable |
 | `GET /api/cover/{id}` | cover art |
-| `GET/POST/PATCH/DELETE /api/playlists…` | playlist CRUD |
+| `GET/POST /api/playlists`, `GET/PATCH/DELETE /api/playlists/{id}` | playlist CRUD |
+| `POST/DELETE /api/playlists/{id}/tracks` | add or remove tracks in a playlist |
+
+<br>
 
 ## Scope
 
-This browses an archive; it does not create one. Getting the tracks onto disk
-(authenticating to Suno, converting and downloading masters, mirroring
-metadata) is a separate concern and not part of this repo.
+suno-web browses an archive and does not create one. Getting the tracks onto disk (signing in to Suno, converting and downloading masters, mirroring metadata) happens outside this repo.
+
+<br>
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
+
+<br>
+
+<p align="right"><sub>jupiter.au</sub></p>
